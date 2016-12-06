@@ -17,6 +17,7 @@ public class EggView extends View {
         for (int i = 0; i < mEggs.length; i++) {
             mEggs[i] = new Egg(this);
         }
+        Egg.readySoundPool(context);
     }
 
     @Override

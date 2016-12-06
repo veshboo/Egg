@@ -1,8 +1,11 @@
 package me.vesh.egg;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,7 +31,7 @@ class Egg implements Runnable {
     private int mViewWidth;
     private int mViewHeight;
 
-    // Egg bitmap
+    // Egg bitmap -- TODO: as static member?
     private final Bitmap mEggBitmap;
     private final int mEggWidth;
     private final int mEggHeight;
@@ -37,6 +40,10 @@ class Egg implements Runnable {
     private final Bitmap mChickBitmap;
     private final int mChickWidth;
     private final int mChickHeight;
+
+    // Chicken chirping sound
+    private static SoundPool sSoundPool;
+    private static int sChickChirp;
 
     // Position and hit status
     private int mX = 0;
@@ -50,7 +57,7 @@ class Egg implements Runnable {
     }
 
     Egg(View view) {
-        this.mView = view; // view width and height are known in changeViewSize
+        mView = view; // view width and height are known in changeViewSize
 
         mEggBitmap = getBitmap(R.drawable.egg);
         mEggWidth = mEggBitmap.getWidth();
@@ -59,6 +66,12 @@ class Egg implements Runnable {
         mChickBitmap = getBitmap(R.drawable.chicken);
         mChickWidth = mChickBitmap.getWidth();
         mChickHeight = mChickBitmap.getHeight();
+    }
+
+    @SuppressWarnings("deprecation") // SoundPool
+    static void readySoundPool(Context context) {
+        sSoundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+        sChickChirp = sSoundPool.load(context, R.raw.chick_chirping, 1);
     }
 
     // Determines position near center of view not to put egg out of view
@@ -85,6 +98,7 @@ class Egg implements Runnable {
         }
     }
 
+    // TODO: Position handler as many as eggs? Possible batching into a handler
     @Override
     public void run() {
         if (mOuch) {
@@ -109,6 +123,7 @@ class Egg implements Runnable {
             if (dist < OUCH_RADIUS) {
                 mOuch = true;
                 mOuchStart = System.nanoTime();
+                sSoundPool.play(sChickChirp, 1.0f, 1.0f, 0, 1, 1.0f);
             } else {
                 if (dist < SLIP_RADIUS) {
                     slip(x, y, dist);
